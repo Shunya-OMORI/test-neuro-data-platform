@@ -1,0 +1,24 @@
+{
+  "name": "neuro-data-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A comprehensive platform for collecting, processing, and managing neurophysiological data.",
+  "scripts": {
+    "build": "pnpm --filter \"./apps/*\" build",
+    "dev": "pnpm --filter \"./apps/*\" --parallel dev",
+    "lint": "eslint . && ruff check .",
+    "format": "prettier --write . && ruff format .",
+    "typecheck": "pnpm --filter \"./packages/types\" build && pnpm --filter \"./apps/!(processor|realtime-analyzer|bids-exporter)\" tsc --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.4.0",
+    "@types/node": "^20.14.2",
+    "eslint": "^9.4.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.4.0",
+    "prettier": "^3.3.1",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.0.0-alpha.20"
+  },
+  "packageManager": "pnpm@9.2.0"
+}

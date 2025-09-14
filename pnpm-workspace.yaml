@@ -1,0 +1,8 @@
+# /pnpm-workspace.yaml
+# Defines the directories that pnpm should treat as packages within the workspace.
+
+packages:
+  # All subdirectories in 'apps/' are individual services
+  - 'apps/*'
+  # All subdirectories in 'packages/' are shared libraries
+  - 'packages/*'

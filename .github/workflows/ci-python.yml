@@ -1,0 +1,57 @@
+# /.github/workflows/ci-python.yml
+# This workflow runs checks for all Python services in the monorepo.
+
+name: CI - Python
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'apps/**/src/**/*.py'
+      - 'apps/**/pyproject.toml'
+      - 'poetry.lock'
+      - 'pyproject.toml'
+      - '.github/workflows/ci-python.yml'
+  pull_request:
+    paths:
+      - 'apps/**/src/**/*.py'
+      - 'apps/**/pyproject.toml'
+      - 'poetry.lock'
+      - 'pyproject.toml'
+      - '.github/workflows/ci-python.yml'
+
+jobs:
+  lint_and_format:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install and configure Poetry
+        run: |
+          pip install poetry
+          poetry config virtualenvs.in-project true
+
+      - name: Install dependencies for all Python apps
+        run: |
+          for d in apps/*/ ; do
+            if [ -f "${d}pyproject.toml" ]; then
+              echo "Installing dependencies in ${d}"
+              (cd "$d" && poetry install --no-root)
+            fi
+          done
+
+      - name: Lint with Ruff
+        run: |
+          poetry run ruff check .
+
+      - name: Check formatting with Ruff
+        run: |
+          poetry run ruff format --check .

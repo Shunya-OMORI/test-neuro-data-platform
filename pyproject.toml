@@ -1,0 +1,28 @@
+# /pyproject.toml
+# This file defines project-wide settings for Python tools, primarily Ruff.
+
+[tool.ruff]
+# Target Python 3.11, consistent with Dockerfiles.
+target-version = "py311"
+# Set line length to 100 to match Prettier for consistency.
+line-length = 100
+# Exclude common directories from linting and formatting.
+extend-exclude = [
+    ".venv",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+# Select a comprehensive set of rules:
+# E/W: pycodestyle errors and warnings
+# F: Pyflakes
+# I: isort (import sorting)
+# B: flake8-bugbear (potential bugs)
+# UP: pyupgrade (modern Python syntax)
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.ruff.format]
+# Configure the formatter to align with Prettier's style.
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

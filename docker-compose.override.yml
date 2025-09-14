@@ -1,0 +1,38 @@
+# /docker-compose.override.yml
+# Development-specific overrides for docker-compose.yml
+
+services:
+  # --- TypeScript Services: Enable Hot-Reloading ---
+  collector:
+    command: pnpm run dev
+    volumes:
+      - ./apps/collector/src:/app/src
+  
+  session-manager:
+    command: pnpm run dev
+    volumes:
+      - ./apps/session-manager/src:/app/src
+
+  media-processor:
+    command: pnpm run dev
+    volumes:
+      - ./apps/media-processor/src:/app/src
+
+  datalinker:
+    command: pnpm run dev
+    volumes:
+      - ./apps/datalinker/src:/app/src
+
+  # --- Python Services: Enable Hot-Reloading ---
+  # (Requires a dev server like Flask's debug mode or uvicorn with reload)
+  processor:
+    volumes:
+      - ./apps/processor/src:/app/src
+  
+  realtime-analyzer:
+    volumes:
+      - ./apps/realtime-analyzer/src:/app/src
+      
+  bids-exporter:
+    volumes:
+      - ./apps/bids-exporter/src:/app/src

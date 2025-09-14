@@ -1,0 +1,31 @@
+# /.gitignore
+
+# --- General ---
+.env
+.DS_Store
+*.log
+
+# --- Node.js / pnpm ---
+node_modules/
+dist/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+build/
+*.egg-info/
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+
+# --- Docker ---
+# Locally persisted data volumes should not be committed
+pg_data/
+minio_data/
+bids_output/

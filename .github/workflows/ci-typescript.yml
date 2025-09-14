@@ -1,0 +1,59 @@
+# /.github/workflows/ci-typescript.yml
+# This workflow runs checks for all TypeScript services in the monorepo.
+
+name: CI - TypeScript
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'apps/**/src/**/*.ts'
+      - 'apps/**/package.json'
+      - 'apps/**/tsconfig.json'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - 'eslint.config.mjs'
+      - '.github/workflows/ci-typescript.yml'
+  pull_request:
+    paths:
+      - 'apps/**/src/**/*.ts'
+      - 'apps/**/package.json'
+      - 'apps/**/tsconfig.json'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - 'eslint.config.mjs'
+      - '.github/workflows/ci-typescript.yml'
+
+jobs:
+  lint_and_build:
+    name: Lint, Typecheck & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint code
+        run: pnpm run lint
+
+      - name: Check types
+        run: pnpm run typecheck
+      
+      - name: Build all TypeScript packages
+        run: pnpm run build

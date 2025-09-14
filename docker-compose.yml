@@ -1,0 +1,140 @@
+# /docker-compose.yml
+# This file defines and orchestrates all services for the neuro-data-platform.
+
+version: '3.8'
+
+services:
+  # --- Infrastructure Services ---
+  db:
+    image: timescale/timescaledb-ha:pg16-ts2.14
+    container_name: neuro-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: neuro-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "15672:15672" # Management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: neuro-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000" # API Port
+      - "9001:9001" # Console Port
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Application Services (TypeScript) ---
+  # These services use a shared, generic Dockerfile for efficiency.
+  collector:
+    build:
+      context: .
+      dockerfile: Dockerfile.typescript
+      args:
+        SERVICE_NAME: collector
+    env_file: ./.env
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+
+  session-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.typescript
+      args:
+        SERVICE_NAME: session-manager
+    env_file: ./.env
+    depends_on:
+      db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  media-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.typescript
+      args:
+        SERVICE_NAME: media-processor
+    env_file: ./.env
+    depends_on:
+      db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      minio: { condition: service_healthy }
+
+  datalinker:
+    build:
+      context: .
+      dockerfile: Dockerfile.typescript
+      args:
+        SERVICE_NAME: datalinker
+    env_file: ./.env
+    depends_on:
+      db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  # --- Application Services (Python) ---
+  processor:
+    build: ./apps/processor
+    env_file: ./.env
+    depends_on:
+      db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      minio: { condition: service_healthy }
+
+  realtime-analyzer:
+    build: ./apps/realtime-analyzer
+    env_file: ./.env
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+
+  bids-exporter:
+    build: ./apps/bids-exporter
+    env_file: ./.env
+    volumes:
+      - bids_output:/bids_output
+    depends_on:
+      db: { condition: service_healthy }
+      minio: { condition: service_healthy }
+
+  # --- Gateway Service ---
+  nginx:
+    build: ./nginx
+    ports:
+      - "${NGINX_PORT}:80"
+    depends_on:
+      - collector
+      - session-manager
+      - realtime-analyzer
+      - bids-exporter
+
+volumes:
+  pg_data:
+  minio_data:
+  bids_output:

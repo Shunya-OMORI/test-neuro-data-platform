@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "bids-exporter"
+version = "0.1.0"
+description = "BIDS export batch processing service"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# Webフレームワーク
+flask = "^3.0.3"
+# データベース接続
+psycopg = {extras = ["binary"], version = "^3.1.19"}
+# MinIOクライアント
+minio = "^7.2.7"
+# 脳波解析ライブラリ
+mne = "^1.6.1"
+mne-bids = "^0.15"
+# 数値計算
+numpy = "^1.26.4"
+# 圧縮・解凍
+zstandard = "^0.22.0"
+# 環境変数管理
+python-dotenv = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.8"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Ruffの設定 (プロジェクトルートのpyproject.tomlから継承するのが理想だが、個別に定義)
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B"]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
