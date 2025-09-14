@@ -5,19 +5,16 @@ import db from './db';
 import { enqueueDataLinkJob } from './rabbitmq';
 
 const upload = multer({ storage: multer.memoryStorage() });
-const router = Router();
+const router: Router = Router();
 
 // --- Experiment Management ---
 router.post('/experiments', async (req, res) => {
-  // ... (Implementation for creating experiments)
   res.status(501).send('Not Implemented');
 });
 
 router.get('/experiments', async (req, res) => {
-  // ... (Implementation for listing experiments)
   res.status(501).send('Not Implemented');
 });
-
 
 // --- Session Finalization ---
 const sessionUpload = upload.fields([
@@ -26,9 +23,9 @@ const sessionUpload = upload.fields([
 ]);
 
 router.post('/sessions/end', sessionUpload, async (req, res) => {
-  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-  const metadataFile = files?.['metadata']?.[0];
-  const eventsFile = files?.['events_file']?.[0];
+  const files = req.files as Record<string, Express.Multer.File[]>;
+  const metadataFile = files?.metadata?.[0];
+  const eventsFile = files?.events_file?.[0];
 
   if (!metadataFile) {
     return res.status(400).json({ error: 'Metadata part is missing.' });
@@ -75,7 +72,7 @@ router.post('/sessions/end', sessionUpload, async (req, res) => {
         ]);
       }
     }
-    
+
     // 3. Enqueue job for DataLinker
     const jobEnqueued = enqueueDataLinkJob(sessionData);
     if (!jobEnqueued) {
@@ -84,7 +81,6 @@ router.post('/sessions/end', sessionUpload, async (req, res) => {
 
     await client.query('COMMIT');
     res.status(200).json({ status: 'Session finalized and linking job enqueued.' });
-
   } catch (error: any) {
     await client.query('ROLLBACK');
     console.error('❌ Failed to process session finalization:', error);
